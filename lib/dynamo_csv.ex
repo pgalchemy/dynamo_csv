@@ -85,7 +85,7 @@ defmodule DynamoCSV do
   defp map_to_put_requests(data, columns) do
     Stream.map(data, fn {:ok, res} ->
       record =
-        @columns
+        columns
         |> Enum.reduce(%{}, fn x, acc ->
           Map.put_new(acc, x, Map.get(res, x))
         end)
