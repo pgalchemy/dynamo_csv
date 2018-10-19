@@ -6,21 +6,31 @@ defmodule DynamoCSV do
   alias ExAws.Dynamo
 
   defmodule Options do
-    defstruct [:file, :dryrun, :table, :columns]
+    defstruct [:file, :dryrun, :table, :columns, :help]
   end
 
   @table_name "dev-passwords"
 
   def main(argv \\ []) do
-    IO.puts("Parsing csv file... ")
-    opts = argv |> parse_args
+    options = argv |> parse_args |> process_options
+  end
 
-    results =
-      opts
+  def process_options(%Options{help: true}) do
+    DynamoCSV.Help.output
+  end
+
+  def process_options(%Options{file: :error}) do
+    DynamoCSV.Help.output
+  end
+
+  def process_options(options) do
+    IO.puts("Parsing csv file... ")
+
+    options
       |> record_list
       |> describe_items
       |> Enum.chunk_every(25)
-      |> update_items(opts.table, opts.dryrun)
+      |> update_items(options.table, options.dryrun)
       |> Enum.filter(&remove_empty_returns/1)
       |> Enum.map(&gather_unprocessed/1)
       |> print_finished_stats
@@ -31,18 +41,14 @@ defmodule DynamoCSV do
   defp parse_args(argv) do
     {parsed, args, _} =
       argv
-      |> OptionParser.parse(strict: [file: :string, dryrun: :boolean, table: :string, columns: :string])
-
-    columns =
-      parsed
-      |> Keyword.get(:columns, "")
-      |> String.split(",")
+      |> OptionParser.parse(strict: [file: :string, dryrun: :boolean, table: :string, columns: :string, help: :boolean])
 
     %Options{
       file: Keyword.get(parsed, :file, :error),
       dryrun: Keyword.get(parsed, :dryrun, false),
       table: Keyword.get(parsed, :table, ""),
-      columns: columns
+      help: Keyword.get(parsed, :help, false),
+      columns: parsed |> Keyword.get(:columns, "") |> String.split(",")
     }
   end
 
