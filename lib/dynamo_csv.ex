@@ -16,14 +16,11 @@ defmodule DynamoCSV do
   end
 
   def process_options(%Options{help: true}) do
-    IO.puts("REQUIRED: You must pass --file option")
-    IO.puts("./dynamo_csv --file /path/to/file.csv")
-    IO.puts("OPTIONAL: You can pass --dryrun option to ...")
-    IO.puts("./dynamo_csv --dryrun --file /path/to/file.csv")
-    IO.puts("OPTIONAL:You can pass --table name")
-    IO.puts("./dynamo_csv --table my_table --file /path/to/file.csv")
-    IO.puts("OPTIONAL:You can pass --columns")
-    IO.puts("./dynamo_csv --table my_table --columns first_name,last_name --file /path/to/file.csv")
+    DynamoCSV.Help.output
+  end
+
+  def process_options(%Options{file: :error}) do
+    DynamoCSV.Help.output
   end
 
   def process_options(options) do
